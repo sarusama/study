@@ -290,8 +290,141 @@ if语句语法:
 
 其中的condition（条件）可以是任意表达式；而且对这个表达式求值的结果不一定是布尔值。ECMAScript会自动调用Boolean()转换函数将这个表达式的结果转换为一个布尔值。如果对condition求值的结果为true,则执行statement1（语句1），如果对condition求值的结果为false,则执行statement2（语句2）。
 
+### do-while 语句
 
+do-while语句是一种后测试语句，即只有在循环体中的代码执行之后，才会测试出口条件。换句话说，在对条件表达式求值之前，循环体内的代码至少会被执行一次。
 
+```
+  do {
+      statement|语句
+  } while ( expression|表达式 )
+```
+
+### while 语句
+
+while语句属于前测试语句,也就是说，在循环体内的代码在被执行之前，就会对出口条件求值。因此循环体内的代码有可能永远不会被执行。
+```
+  while ( expression|表达式 ) {
+      statement|语句
+  }
+```
+
+### for 语句
+
+for语句属于前测试循环语句，但它具有在执行循环之前初始化变量和定义循环后要执行的代码的能力。
+
+```
+  for (initialization|初始化; expression|表达式; post-loop-expression|循环后表达式) {
+      statement|语句
+  }
+```
+
+### for-in 语句
+
+for-in语句是一种精准的迭代语句，可以用来枚举对象的属性。
+
+```
+   for ( property|属性 in expression|表达式 ) {
+       statement|语句
+   }
+```
+
+### label 语句
+
+label语句可以在代码中添加标签，以便将来使用。
+```
+    label|标签: statement|语句
+```
+
+### break 和 continue 语句
+
+break和continue语句用于在循环中精确的控制代码的执行。
+break语句会立即退出循环，强制继续执行循环后面的语句。
+continue语句虽然也是立即退出循环，但退出循环后会从循环的顶部继续执行。
+
+### with 语句
+
+with语句的作用是将代码的作用域设置到一个特定的对象中。
+
+```
+  with ( expression|表达式 ) {
+      statement|语句
+  }
+  example:
+  source code: {
+    let hostname = window.location.hostname;
+    let url = window.location.href;
+  }
+  use "with": {
+      with ( window.location ) {
+          let hostname = hostname;
+          url = href;
+      }
+  }
+```
+由于大量使用with语句会导致性能下降，同时也会给调试代码造成困难，因此在开发大型应用程序时，不建议使用with语句。
+
+### switch 语句
+
+switch语句与if语句的关系最为密切，而且也是在其他语言中普遍使用的一种流控制语句。
+```
+    switch ( expression|表达式 ) {
+        case value|值:
+            statement|语句;
+            break;
+        default:
+            statement|语句:
+            break;
+    }
+```
+switch语句中的每一种情形（case）的含义是：如果表达式等于这个值（value），则执行后面的语句（statement）。而break关键字会导致代码执行流跳出switch语句。如果省略break关键字，就会导致执行完当前case后，继续执行下一个case。最后的default关键字则用于在表达式不匹配前面任何一种情形的时候，执行机动代码。
+
+其将按照代码从上往下的顺序进行执行语句，比如：
+```
+    switch ( 1 ) {
+        case 2: 
+            console.log(2);
+            break;
+        case 0:
+            console.log(0);
+            break;
+        case 1:
+            console.log(1);
+        default:
+            console.log("default");
+            break;
+    }
+    /// 1 "default"
+
+    switch ( 1 ) {
+        case 2: 
+            console.log(2);
+            break;
+        case 1:
+            console.log(1);
+        case 0:
+            console.log(0);
+            break;
+        default:
+            console.log("default");
+            break;
+    }
+    // 1 0
+```
+
+注：switch语句在比较值时使用的是全等操作符。
+
+```
+    switch ( 1 ) {
+        case "1":
+            console.log("1");
+            break;
+        default:
+            console.log("default");
+            break;
+    }
+    /// "default"
+```
 
 
 
