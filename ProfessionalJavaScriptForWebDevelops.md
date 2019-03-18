@@ -426,6 +426,64 @@ switch语句中的每一种情形（case）的含义是：如果表达式等于�
     /// "default"
 ```
 
+## 函数
+函数对任何语言来说都是一个核心的概念。通过函数可以封装任意多条语句，而且可以在任何地方、任何时间调用执行。
+ECMAScript中的函数使用function关键字来声明，后跟一组参数以及函数体。
+```
+function functionName|函数名 ( argv0|参数0, argv1|参数1,..., argvN|参数N ) {
+    statements|语句
+}
+var functionName|函数名 = function ( argv0|参数0, argv1|参数1,..., argvN|参数N ) {
+    statements|语句
+}
+```
+
+函数名也可以省略，变成匿名函数:
+```
+function ( argv0|参数0, argv1|参数1,..., argvN|参数N ) {
+    statements|语句
+};
+```
+
+ES6中加入了箭头函数：
+
+```
+//  基础语法
+var functionName|函数名 = ( argv0|参数0, argv1|参数1,..., argvN|参数N ) => {
+    statements|语句
+}
+let functionName|函数名 = ( argv0|参数0,argv1|参数1,..., argvN|参数N ) => {
+    statements|语句
+}
+( argv0|参数0, argv1|参数1,..., argvN|参数N ) => {
+    statements|语句
+}
+当函数体为一个表达式时：
+( argv0|参数0, argv1|参数1,..., argvN|参数N ) => expression|表达式
+( argv0|参数0, argv1|参数1,..., argvN|参数N ) => {
+    return expression|表达式
+}
+当参数数目为一时：
+( argv0|参数0 ) => {
+    statements|语句
+}
+argv0|参数0 => {
+    statements|语句
+}
+没参数时，需要加上小括号：
+() => {
+    statements|语句
+}
+//  高级语法
+todoList: 箭头函数高级语法
+```
+箭头函数与普通函数的区别：
+* 更简短的函数并且不绑定this
+* 在箭头函数出现之前，每个新定义的函数都有它自己的this值（在构造函数的情况下是一个新对象，在严格模式的函数调用中为undefined，如果该函数被作为“对象方法”调用则为基础对象等）。
+
+
+
+
 
 
 
