@@ -446,7 +446,8 @@ function ( argv0|参数0, argv1|参数1,..., argvN|参数N ) {
 ```
 
 ES6中加入了箭头函数：
-
+箭头函数表达式的语法比函数表达式更简洁，并且没有自己的this, arguments, super, new.target。
+箭头函数表达式更适用于那些本来需要匿名函数的地方，并且它们不能用作构造函数。
 ```
 //  基础语法
 var functionName|函数名 = ( argv0|参数0, argv1|参数1,..., argvN|参数N ) => {
@@ -476,10 +477,231 @@ argv0|参数0 => {
 }
 //  高级语法
 todoList: 箭头函数高级语法
+//  加括号的函数体返回对象字面表达式
+( argv0|参数0 ) => ( { foo: bar } )
+//  相当于
+( argv0|参数0 ) => {
+    return {
+        foo: bar
+    }
+}
+
+//  支持剩余参数和默认参数
+( argv0|参数0, argv1|参数1, ...rest|剩下的 ) => {
+    statements|语句
+}
+( argv0|参数0 = default0|默认值0, argv1|参数1 = default1|默认1,..., argvN|参数N = defaultN|默认值N ) => {
+    statements|语句
+}
+//  支持参数结构
+let f = ( [a, b] = [1, 2], { x: c } = { x: a + b } ) => a + b + c;
+f() //  6
 ```
 箭头函数与普通函数的区别：
 * 更简短的函数并且不绑定this
 * 在箭头函数出现之前，每个新定义的函数都有它自己的this值（在构造函数的情况下是一个新对象，在严格模式的函数调用中为undefined，如果该函数被作为“对象方法”调用则为基础对象等）。
+```
+与严格模式的关系：
+鉴于this是词法层次上的，严格模式中与this相关的规则都会被忽略。
+通过call和apply调用:
+由于箭头函数没有自己的this指针，通过call()和apply()方法调用一个函数时，只能传递参数，他们的第一个参数会被忽略。
+例：
+`
+var adder = {
+    base : 1,
+    add : function(a) {
+        var f = v => v + this.base;
+        return f(a);
+    },
+    addThruCall: function(a) {
+        var f = v => v + this.base;
+        var b = {
+            base : 2
+        };   
+        return f.call(b, a);
+    }
+};
+console.log(adder.add(1));         // 输出 2
+console.log(adder.addThruCall(1)); // 仍然输出 2（而不是3）
+`
+```
+* 不绑定arguments
+```
+箭头函数不绑定Arguments对象。因此，在本示例中，arguments只是引用了封闭作用域内的arguments:
+`
+var arguments = [1, 2, 3];
+var arr = () => arguments[0];
+
+arr(); // 1
+
+function foo(n) {
+    var f = () => arguments[0] + n; // 隐式绑定 foo 函数的 arguments 对象. arguments[0] 是 n
+    return f();
+}
+
+foo(1); // 2
+`
+在大多数情况下，使用剩余参数是相较使用arguments对象的更好选择。
+`
+function foo(arg) { 
+    var f = (...args) => args[0]; 
+    return f(arg); 
+}
+foo(1); // 1
+
+function foo(arg1, arg2) { 
+    var f = (...args) => args[1]; 
+    return f(arg1,arg2); 
+} 
+foo(1,2);  //2
+`
+```
+* 箭头函数表达式对非方法函数是最合适的。
+* 箭头函数不能用作构造器，和new一起使用会抛出错误。
+* 箭头函数没有proptype属性。
+* yield关键字通常不能在箭头函数中使用（除非是嵌套在允许使用的函数内）。因此，箭头函数不能用作生成器。
+* 箭头函数在参数和箭头之间不能换行。
+* 箭头函数解析顺序
+```
+let callback = undefined;
+callback = callback || function () {};
+// no Error
+callback = callback || () => {};
+// error
+callback = callback || (() => {});
+// no Error
+```
+
+箭头函数体：
+```
+let functionName = ( argv ) => argv + argv;
+let functionName = ( argv ) => {
+    return argv + argv;
+}
+```
+返回对象字面量：
+```
+记住用params => { object: literal } 这种简单的语法返回对象字面量是行不通的。
+如需返回对象字面量，需要将式子改为
+params => ({ object: literal })
+```
+
+箭头函数例子：
+```
+// 空的箭头函数返回 undefined
+let empty = () => {};
+
+(() => 'foobar')(); 
+// Returns "foobar"
+// (这是一个立即执行函数表达式,可参阅 'IIFE'术语表) 
+
+// 三元运算符
+var simple = a => a > 15 ? 15 : a; 
+simple(16); // 15
+simple(10); // 10
+
+let max = (a, b) => a > b ? a : b;
+
+// Easy array filtering, mapping, ...
+var arr = [5, 6, 13, 0, 1, 18, 23];
+
+var sum = arr.reduce((a, b) => a + b);  
+// 66
+
+var even = arr.filter(v => v % 2 == 0); 
+// [6, 0, 18]
+
+var double = arr.map(v => v * 2);       
+// [10, 12, 26, 0, 2, 36, 46]
+
+// 更简明的promise链
+promise.then(a => {
+  // ...
+}).then(b => {
+  // ...
+});
+
+// 无参数箭头函数在视觉上容易分析
+setTimeout( () => {
+  console.log('I happen sooner');
+  setTimeout( () => {
+    // deeper code
+    console.log('I happen later');
+  }, 1000);
+}, 1000);
+```
+
+箭头函数内定义的变量及其作用域
+```
+// 常规写法
+var greeting = () => {
+    let now = new Date(); 
+    return ("Good" + ((now.getHours() > 17) ? " evening." : " day."));
+}
+greeting();          //"Good day."
+console.log(now);    // ReferenceError: now is not defined 标准的let作用域
+
+// 参数括号内定义的变量是局部变量（默认参数）
+var greeting = ( now = new Date() ) => "Good" + (now.getHours() > 17 ? " evening." : " day.");
+greeting();          //"Good day."
+console.log(now);    // ReferenceError: now is not defined
+
+// 对比：函数体内{}不使用var定义的变量是全局变量
+var greeting = () => {
+    now = new Date(); 
+    return ("Good" + ((now.getHours() > 17) ? " evening." : " day."));
+}
+greeting();           //"Good day."
+console.log(now);     // Fri Dec 22 2017 10:01:00 GMT+0800 (中国标准时间)
+
+// 对比：函数体内{} 用var定义的变量是局部变量
+var greeting = () => {
+    var now = new Date(); 
+    return ("Good" + ((now.getHours() > 17) ? " evening." : " day."));
+}
+greeting(); //"Good day."
+console.log(now);    // ReferenceError: now is not defined
+```
+
+箭头函数也可以使用闭包：
+```
+// 标准的闭包函数
+function A () {
+    var i = 0;
+    return function b () {
+        return ( ++i );
+    };
+};
+
+var v = A();
+v();    //1
+v();    //2
+
+
+//箭头函数体的闭包（ i=0 是默认参数）
+var Add = ( i = 0 ) => {
+    return ( () => ( ++i ) );
+};
+var v = Add();
+v();           //1
+v();           //2
+
+//因为仅有一个返回，return 及括号（）也可以省略
+var Add = ( i = 0 ) => () => ( ++i );
+```
+
+箭头函数递归:
+```
+var fact = (x) => ( x == 0 ?  1 : x * fact( --x ) );
+fact(5);       // 120
+```
+
+** 推荐的做法是要么让函数始终都返回值，要么永远都不要返回值。否则，如果函数有时候返回值，有时候不返回值，会给调试代码带来不便 **
+
+严格模式下对函数有一些限制：
+- 不能将函数命名为eval或arguments;
+- 不能将参数命名为eval或arguments;
+- 不能出现两个命名参数同名的情况。
 
 
 
