@@ -17,3 +17,31 @@ foreach函数每个元素执行一次提供的函数
 ## slice和substring在操作字符串上花的时间一致
 
 ## 循环的执行效率要比递归高
+
+
+## JS栈的实现
+
+```
+window.Stack = function Stack (value = []) {
+	let items = [];
+	if ( _.isArray(value) ) {
+		items = value;
+	}
+	this.top = items.length;
+	this.items = items;
+};
+Stack.prototype.pushStack = function pushStack ( value ) {
+	this.items.push(value);
+	++this.top;
+
+	return true;
+};
+Stack.prototype.popStack = function popStack () {
+	--this.top;
+
+	return this.items.pop();
+}
+Stack.prototype.peakStack = function peakStack () {
+	return this.items[this.top - 1];
+}
+```
