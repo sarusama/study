@@ -1086,6 +1086,149 @@ ECMAScript5添加了Date.now()方法，返回表示调用这个方法时的日�
 - setUTCMilliseconds(毫秒)--设置UTC日期中的毫秒数；
 - getTimezoneOffset()--返回本地时间与UTC时间相差的分钟数。例如，美国东部标准返回时间300。在某地进入夏令时的情况下，这个值会有所变化。
 
+# RegExp类型
+
+ECMAScript通过RegExp类型来支持正则表达式。
+```
+   var expression = /pattern/flag;
+```
+其中的模式(pattern)部分可以是任何简单或复杂的正则表达式，可以包含字符类、限定符、分组、向前查找以及反向引用。每个正则表达式都可带有一个或多个标志(flags),用以标明正则表达式的行为。
+正则表达式的匹配模式支持下列3个标志：
+- g:表示全局(global)模式，即模式将被应用于所有字符串，而非在发现第一个匹配项时立即停止；
+- i:表示不区分大小写(case-insensitive)模式，即在确定匹配项时忽略模式与字符串的大小写；
+- m:表示多行(multiline)模式，即在到达一行文本末尾时还会继续查找下一行中是否存在与模式匹配的项。
+
+与其他语言中的正则表达式类似，模式中使用的所有元字符都必须转义。正则表达式中的元字符包含：
+```
+()[]{}\^$|?*+.
+```
+这些元字符在正则表达式中都有一或多种特殊用途，因此如果想要匹配字符串中包含的这些字符，就必须要对它们进行转义。
+
+定义正则表达式有两种方式：
+- 以字面量形式来定义；
+- 使用RegExp构造函数，它接收两个参数：一个是要匹配的字符串模式，另一个是可选的标志字符串。
+要注意的是，传递给RegExp构造函数的两个参数都是字符串（不能把正则表达式字面量传递给RegExp构造函数）。由于RegExp构造函数的模式参数是字符串，所以在某些情况下要对字符进行双重转义。所有元字符都必须双重转义，那些已经转义过的字符也是如此，例如\n(字符\在字符串中通常被转义为\\，而在正则表达式字符串中就会变成\\\\)。
+使用正则表达式字面量和使用RegExp构造函数创建的正则表达式不一样。在ECMAScript3中，正则表达式字面量始终会共享同一个RegExp实例，而使用构造函数创建的每一个新RegExp实例都是一个新实例。
+例：
+```
+var re = null,
+    i;
+
+for ( i = 0; i < 10; i ++ ) {
+    re = /cat/g;
+    console.log(re.test("catastrophe"));
+}
+for ( i = 0; i < 10; i ++ ) {
+    re = new RegExp("cat", "g");
+    console.log(re.test("catastrophe"));
+}
+```
+在第一个循环中，即使是循环体中指定的，但实际上只为/cat/创建了一个RegExp实例。由于实例属性(下一节介绍实例属性)不会重置，所以在循环中再次调用test()方法会失败。这是因为第一次调用test()找到了"cat"，但第二次调用是从索引为3的字符(上一次匹配的末尾)开始的，所以就找不到它了。由于会测试到字符串末尾，所以下一次再调用test()就又从开头开始了。
+第二个循环使用RegExp构造函数在每次循环中创建正则表达式。因为每次迭代都会创建一个新的RegExp实例，所以每次调用test()都会返回 true。
+ECMAScript5明确规定，使用正则表达式字面量必须像直接调用RegExp构造函数一样，每次都创建新的RegExp实例。
+
+## 实例属性
+
+RegExp的每个实例都具有下列属性，通过这些属性可以取得有关模式的各种信息。
+- global:布尔值，表示是否设置了g标志；
+- ignoreCase:布尔值，表示是否设置了i标志；
+- lastIndex:整数，表示开始搜索下一个匹配项的字符位置，从0算起；
+- multiline:布尔值，表示是否设置了m标志；
+- source:正则表达式的字符串表示，按照字面量形式而非传入构造函数中的字符串模式返回。
+通过这些属性可以获知一个正则表达式的各方面信息，但却没有多大用处，因为这些信息全都包含在模式声明中。
+
+
+## RegExp实例方法
+
+RegExp对象的主要方法是exec()，该方法是专门为捕获组而设计的。exec()接受一个参数，即要应用模式的字符串，然后返回包含第一个匹配项信息的数组；或者在没有匹配项的情况下返回null。返回的数组虽然是Array的实例，但包含两个额外的属性：index和input。其中，index表示匹配项在字符串中的位置，而input表示应用正则表达式的字符串。在数组中，第一项是与整个模式匹配的字符串，其他项是与模式中的捕获组匹配的字符串（如果模式中没有捕获组，则该数组只包含一项）。
+```
+var text = "mom and dad and baby";
+var pattern = /mom( and dad ( and baby)?)?/gi;
+
+var matches = pattern.exec(text);
+console.log(matches.index);     // 0
+console.log(matches.input);     // "mom and dad and baby"
+console.log(matches[0]);        // "mom and dad and baby"
+console.log(matches[1]);        // " and dad and baby"
+console.log(matches[2]);        // " and baby"
+```
+最内部的捕获组匹配"and baby"，而包含它的捕获组匹配"and dad"或者"and dad and baby"。当把字符串传入exec()方法中之后，发现了一个匹配值。因为整个字符串本身与模式匹配，所以返回的数组matches的index属性值为0。数组中的第一项是匹配的整个字符串，第二项包含与第一项捕获组匹配的内容，第三项包含与第二个捕获组匹配的内容。
+对于exec()方法而言，即使在模式中设置了全局标志(g)，它每次也只会返回一个匹配项。在不设置全局标志的情况下，在同一个字符串上多次调用exec()将始终返回第一个匹配项的信息。而在设置全局标志的情况下，每次调用exec()则都会在字符串中继续查找新匹配项。
+```
+var text = "cat, bat, sat, fat";
+var pattern1 = /.at/;
+
+var matches = pattern1.exec(text);
+console.log(matches.index);       // 0
+console.log(matches[0]);          // cat
+console.log(pattern1.lastIndex);  // 0
+
+matches = pattern1.exec(text);
+console.log(matches.index);       // 0
+console.log(matches[0]);          // cat
+console.log(pattern1.lastIndex);  // 0
+
+var pattern2 = /.at/g;
+matches = pattern2.exec(text);
+console.log(matches.index);       // 0
+console.log(matches[0]);          // cat
+console.log(pattern2.lastIndex);  // 3
+
+matches = pattern2.exec(text);
+console.log(matches.index);       // 5
+console.log(matches[0]);          // bat
+console.log(patters.lastIndex);   // 8
+```
+这个例子中的第一个模式pattern1不是全局模式，因此每次调用exec()返回的都是第一个匹配项("cat")。而第二个模式pattern2是全局模式，因此每次调用exec()都会返回字符串中的下一个匹配项，直至搜索至字符串末尾为止。此外，还应该注意模式的lastIndex属性的变化情况。在全局匹配模式下，lastIndex的值在每次调用exec()后都会增加，而在非全局模式下则始终保持不变。
+```
+IE的JavaScript实现在lastIndex属性上存在偏差，即使在非全局模式下，lastIndex属性每次也会变化。
+```
+正则表达式的第二个方法是test()，它接受一个字符串参数。在模式与该参数匹配的情况下返回true；否则，返回false。在只想知道目标字符串与某个模式是否匹配，但不需要知道其文本内容的情况下，使用这个方法非常方便。因此，test()方法经常被用在if语句中。
+```
+var text = "000-00-0000";
+var pattern = /\d(3)-\d(2)-\d(4)/;
+
+if ( pattern.test(text) ) {
+    console.log("matched");
+}
+```
+在这个例子中，使用正则表达式来测试一个数组序列。如果输入的文本与模式匹配，则显示一条消息。这种用法经常出现在验证用户输入的情况下，因为只想知道输入是不是有效，并不关心它为什么无效。
+RegExp实例继承的toLocaleString()和toString()方法都会返回正则表达式的字面量，与创建正则表达式的方式无关。
+```
+var pattern = new RegExp("\\[bc\\]at", "gi");
+
+console.log(pattern.toLocaleString());       // /\[bc\]at/gi
+console.log(pattern.toString());             // /\[bc\]at/gi
+```
+**正则表达式的valueOf()方法返回的是正则表达式本身**
+
+## RegExp构造函数属性
+
+RegExp构造函数包含一些属性（这些属性在其他语言中被看成是静态属性）。这些属性适用于作用域中的所有正则表达式，并且基于所执行的最近一次正则表达式操作而变化。关于这些属性的另一个独特之处，就是可以通过两种方式访问它们。换句话说，这些属性分别有一个长属性名和一个短属性名（Opera是例外，它不支持短属性名）。
+```
+长属性名 - 短属性名 - 说明
+input - $_ - 最近一次要匹配的字符串。Opera未实现此属性。
+lastMatch - $& - 最近一次的匹配项。Opera未实现此属性。
+lastParen - $+ - 最近一次匹配的捕获组。Opera未实现此属性。
+leftContext - $` - input字符串中lastMatch之前的文本。
+multiline - $* - 布尔值，表示是否所有表达式都使用多行模式。IE和Opera未实现此属性。
+rightContext - $' - input字符串中lastMatch之后的文本。
+```
+使用上述属性可以从exec()或test()执行的操作中提取出更具体的信息。
+除了上面介绍的几个属性之外，还有多达9个用于存储捕获组的构造函数属性。访问这些属性的语法是RegExp.$1、RegExp.$2...RegExp.$9，分别用于存储第一，第二...第九个匹配的捕获组。在调用exec()和test()方法时，这些属性会被自动填充。
+
+## 模式的局限性
+
+ECMAscript正则表达式不支持下列特性：
+- 匹配字符串开始和结尾的\A和\Z锚，但是支持以插入符号(^)和美元符号($)来匹配字符串的开始和结尾；
+- 向后查找，但是完全支持向前查找；
+- 交集和并集类；
+- 原子组；
+- Unicode支持(单个字符串除外，如/uFFFF);
+- 命名的捕获组，但支持编号的捕获组；
+- s(single, 单行)和x(free-spacing, 无间隔)匹配模式；
+- 条件匹配；
+- 正则表达式注释。
 
 
 
