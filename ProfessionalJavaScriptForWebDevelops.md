@@ -1230,6 +1230,280 @@ ECMAscript正则表达式不支持下列特性：
 - 条件匹配；
 - 正则表达式注释。
 
+# Funciton类型
+
+每个函数都是Function类型的实例，而且都与其他引用类型一样具有属性和方法。由于函数是对象，因此函数名实际上也是一个指向函数对象的指针，不会与某个函数绑定。函数通常是使用函数声明语法定义的：
+```
+    function functionName (param1, param2) {
+        statements
+    }
+    var functionName = function (param1, param2) {
+        statements
+    };
+```
+使用函数表达式定义函数时，没有必要使用函数名；注意函数表达式末尾有一个分号，就像声明其他变量一样。
+使用Function构造函数定义函数。Function构造函数可以接收任意数量的参数，但最后一个参数始终都会被看成是函数体，而前面的参数则枚举出了新函数的参数：
+```
+    var functionName = new Function("param1", "param2", "statements");
+```
+从技术的角度讲，这是一个函数表达式。但是，不推荐如此定义函数，因为这种语法会导致解析两次代码（第一次是解析常规ECMAScript代码，第二次是解析传入构造函数中的字符串），从而影响性能。不过，这种语法对于理解“函数是对象，函数名是指针”的概念倒是非常直观的。
+由于函数名仅仅是指向函数的指针，因此函数名与包含对象指针的其他变量没有什么不同。换句话说，一个函数可能会有多个函数名。
+
+## 没有重载（深入理解）
+
+将函数名想象为指针，也有助于理解为什么ECMAScript中没有函数重载的概念：
+```
+function functionName (param1, param2)  {
+    statements;
+}
+function functionName (param1, param2,  param3) {
+    statements;
+}
+```
+相当于：
+```
+var functionName = function (param1, param2) {
+    statements;
+}
+functionName = function  (param1, param2,  param3) {
+    statements;
+}
+```
+在创建第二个函数时，实际上覆盖了引用第一个函数的变量functionName。
+
+## 函数声明与函数表达式
+
+解析器在向执行环境中加载数据时，对函数声明和函数表达式并非一视同仁。解析器会率先读取函数声明，并使其在执行任何代码之前可用（可以访问）；至于函数表达式，则必须等到解析器执行到它所在的代码行，才会真正地被解释执行。
+```
+console.log(sum(1, 2));     // 3
+function sum(num1, num2) {
+    return num1 + nums2;
+}
+```
+上述代码完全可以正常运行。因为在代码开始执行之前。解析器就已经通过一个名为函数声明提升(function declaration hoisting)的过程，读取并将函数声明添加到执行环境中。对代码求值时，JavaScript引擎在第一遍会声明函数并将它们放到源代码树的顶部。所以，即使声明函数的代码在调用它的代码后面，JavaScript引擎也能把函数声明提升到顶部。如果像下面例子所示的，把上面的函数声明改为等价的函数表达式，就会在执行期间导致错误。
+```
+console.log(sum(1, 2));     // sum is undefined
+var sum = function (num1, num2) {
+    return num1 + num2;
+}
+```
+以上代码之所以会在运行期间产生错误，原因在于函数位于一个初始化语句中，而不是一个函数声明。换句话说，在执行到函数所在的语句之前，变量sum中不会保存有对函数的引用；而且，由于第一行代码就会导致"unexpected identifier"（意外标识符）错误，实际上也不会执行到下一行。
+除了什么时候可以通过变量访问函数这一点区别之外，函数声明与函数表达式的语法其实是等价的。
+```
+也可以同时使用函数声明和函数表达式，例如var sum = function sum () {}。不过，这种语法在safari中会导致错误。
+```
+
+## 作为值的函数
+
+因为ECMAScript中的函数名本身就是变量，所以函数也可以作为值来使用。也就是说，不仅可以像传递参数一样把一个函数传递给另一个函数，而且可以将一个函数作为另一个函数的结果返回。
+```
+function callSomeFunction (someFunction, someArguments) {
+    return someFunction(someArguments);
+}
+function add10 (num) {
+    return num + 10;
+}
+var result1 = callSomeFunction(add10, 10); // 20
+
+function greeting (name) {
+    return `Hello, ${name}`;
+}
+var result2 = callSomeFunction(greating, "Nicholas"); // "Hello, Nicholas"
+```
+这里的callSomeFunction()函数是通用的，即无论第一个参数中传递进来是什么函数，它都会返回执行第一个参数后的结果。还记得吧，要访问函数的指针而不执行函数的话，必须去除函数名后面的那对圆括号。因此上面例子中传递给callSomeFunction()的是add10()和greeting()，而不是执行他们之后的结果。
+当然，可以从一个函数中返回另一个函数，而且这也是极为有用的一项技术。例如，假设有一个对象数组，我们想要根据某个对象属性对数组进行排序。而传递给数组sort()方法的比较函数要接收两个参数，即要比较的值。可是，我们需要一种方式来指明按照哪个属性来排序。要解决这个问题，可以定义一个函数，它接收一个属性名，然后根据这个属性名来创建一个比较函数。
+```
+function createComparisonFunction (propertyName) {
+    return function (object1, object2) {
+        var value1 = object1[propertyName];
+        var value2 = object2[propertyName];
+
+        if ( value1 < value2 ) {
+            return -1;
+        } else if ( value1 > value2 ) {
+            return 1;
+        } else {
+            return 0;
+        }
+    };
+}
+```
+这个函数定义看起来有点复杂，但实际上无非就是在一个函数中嵌套了另一个函数，而且内部函数前面加了一个return操作符。在内部函数接收到propertyName参数后，它会使用方括号表示法来取得给定属性的值。取得了想要的属性值之后，定义比较函数就非常简单了。上述函数可以像下方例子中这样使用：
+```
+var data = [{name: "Zed", age: 20}, {name: "Andrew", age: 26}];
+data.sort(createComparisonFunction("name"));
+console.log(data[0].name);      // "Andrew"
+data.sort(createComparisonFunction("age"));
+console.log(data[0].name);      // "Zed"
+```
+
+## 函数内部属性
+
+在函数内部，有两个特殊的对象：arguments和this。其中，arguments是一个类数组对象，包含着传入函数中的所有参数。虽然arguments的主要用途是保存函数参数，但这个对象还有一个名叫callee的属性，该属性是一个指针，指向拥有这个arguments对象的函数。
+阶乘函数：
+```
+function factorial(num) {
+    if ( num <= 1 ) {
+        return 1;
+    } else {
+        return num * factorial(num - 1);
+    }
+}
+```
+定义阶乘函数一般都要用到递归算法；在函数有名字，而且名字以后也不会变的情况下，这样定义没有问题。但问题是这个函数的执行与函数名factorial紧紧耦合在了一起。为了消除这种紧密耦合的现象，可以像下面这样使用arguments.callee：
+```
+function factorial(num) {
+    if ( num <= 1 ) {
+        return 1;
+    } else {
+        return num * arguments.callee(num - 1);
+    }
+}
+```
+在这个重写后的factorial()函数的函数体内，没有再引用函数名factorial。这样，无论引用函数时使用的是什么名字，都可以保证正常完成递归调用：
+```
+var trueFactorial = factorial;
+factorial = function () {
+    return 0
+};
+
+console.log(trueFactorial(5));    // 120
+console.log(factorial(5));        // 0
+```
+函数内部的另一个特殊对象是this，其行为与Java和C#中的this大致类似。换句话说，this引用的是函数据以执行的环境对象--或者也可以说是this值（当在网页的全局作用域中调用函数时，this对象引用的就是window）:
+```
+window.color = "red";
+var o = {
+    color: "blue"
+};
+
+function sayColor () {
+    console.log(this.color);
+}
+
+sayColor();      // "red"
+o.sayColor = sayColor();
+o.sayColor();    // "blue"
+```
+函数的名字仅仅是一个包含指针的变量而已。因此，即使是在不同环境中执行，全局的sayColor()函数和o.sayColor()指向的仍然是同一个函数。
+ECMAScript5也规范了另一个函数对象的属性：caller。除了Opera的早期版本不支持，其他浏览器都支持这个ECMAScript3并没有定义的属性。这个属性中保存着调用当前函数的函数的引用，如果是在全局作用域中调用callee函数，他的值为null:
+```
+function outer() {
+    inner();
+}
+
+function inner() {
+    console.log(inner.caller);
+}
+
+outer();
+```
+为了实现更松散的耦合，也可以通过arguments.callee.caller来访问相同的信息:
+```
+function outer() {
+    inner();
+}
+function inner() {
+    console.log(arguments.callee.caller);
+}
+outer();
+```
+当函数在严格模式下运行时，访问arguments.callee会导致错误。ECMAScript5还定义了arguments.caller属性，但在严格模式下访问它也会导致错误，而在非严格模式下这个属性始终是undefined。定义这个属性是为了分清arguments.caller和函数caller属性。以上变化都是为了加强这门语言的安全性，这样第三方代码就不能在相同的环境里窥探其他代码了。严格模式还有一个限制：不能为函数的caller属性赋值，否则会导致错误。
+## 函数属性和方法
+
+ECMAScript中的函数是对象，因此函数也有属性和方法。每个函数都包含两个属性：length和prototype。其中，length属性表示函数希望接受的命名参数的个数：
+```
+function sayHi() {
+    console.log("Hi!");
+}
+function sayName(name) {
+    console.log(name);
+}
+function sum(num1, num2) {
+    return num1 + num2;
+}
+console.log(sayHi.length);  // 0
+console.log(sayName.length);// 1
+console.log(sum.length);    // 2
+```
+在ECMAScript核心所定义的全部属性中，最耐人寻味的就要数prototype属性了。对于ECMAScript中的引用类型而言，prototype是保存它们所有实例方法的真正所在。换句话说，诸如toString()和valueOf()等方法实际上都保存在prototype名下，只不过是通过各自对象的实例访问罢了。在创建自定义引用类型以及实现继承时，prototype属性的作用是极为重要的。在ECMAScript5中，prototype属性是不可枚举的，因此使用for-in无法发现。
+每个函数都包含两个非继承而来的方法：apply()和call()。这两个方法的用途都是在特定的作用域中调用函数，实际上等于设置函数体内this对象的值。首先，apply()方法接收两个参数：一个是在其中运行函数的作用域，另一个是参数数组。其中，第二个参数可以是Array的实例，也可以是arguments对象：
+```
+function sum(num1, num2) {
+    return num1 + num2;
+}
+function callSum1 (num1, num2) {
+    return sum.apply(this, arguments);
+}
+function callSum2 (num1, num2) {
+    return sum.apply(this, [num1, num2]);
+}
+
+console.log(callSum1(10, 10));   // 20
+console.log(callSum2(10, 10));   // 20
+```
+在严格模式下，未指定环境对象而调用函数，则this值不会转型为window。除非明确把函数添加到某个对象或者调用apply()或call()，否则this值将是undefiend。
+call()方法与apply()方法的作用相同，它们的区别仅在于接收参数的方式不同。对于call()方法而言，第一个参数是this值没有变化，变化的是其余参数都直接传递给函数。换句话说，在使用call()方法时，传递给函数的参数必须逐个列举出来：
+```
+function sum(num1, num2) {
+    return num1 + num2;
+}
+function callSum(num1. num2) {
+    sum.call(this, num1, num2);
+}
+console.log(callSum(10, 10));  // 20
+```
+至于是使用apply()还是call()，完全取决于你采取哪种给函数传递参数的方式最方便。如果你打算直接传入arguments对象，或者包含函数中先接收到的也是一个数组，那么使用apply()肯定更方便；否则，选择call()可能更合适。（在不给函数传递参数的情况下，使用哪个方法都无所谓）。事实上，传递参数并非apply()和call()真正的用武之地；它们真正强大的地方是能够扩充函数赖以运行的作用域：
+```
+window.color = "red";
+var o = {
+    color: "blue"
+};
+function sayColor() {
+    console.log(this.color);
+}
+sayColor.apply(this);         // "red"
+sayColor.apply(window);       // "red"
+sayColor.apply(o);            // "blue"
+```
+使用call()或apply()来扩充作用域的最大好处，就是对象不需要与方法有任何耦合关系。ECMAScript5还定义了一个方法：bind()。这个方法会创建一个函数的实例，其this值会被绑定到传给bind()函数的值：
+```
+window.color = "red";
+var o = {
+    color: "blue"
+};
+function sayColor() {
+    console.log(this.color);
+}
+var objectSayColor = sayColor.bind(o);
+objectSayColor();                    // "blue"
+```
+每个函数继承的toString()和toLocaleString()方法始终都返回函数的代码。返回代码的格式则因浏览器而异--有的返回的代码与源代码中的函数代码一样，而有的则返回函数代码的内部表示，即由解析器删除了注释并对某些代码作了改动后的代码。由于存在这些差异，我们无法根据这两个方法返回的结果来实现任何重要功能；不过，这些信息在调试代码时倒是很有用。另外一个继承的valueOf()方法同样也只返回函数代码。
+
+## 基本包装类型
+
+为了便于操作基本类型值，ECMAScript还提供了3个特殊的引用类型：Boolean、Number和String。这些类型与本章介绍的其他引用类型相似，但同时也具有各自的基本类型相应的特殊行为。实际上，每当读取一个基本类型值的时候，后台就会创建一个对应的基本包装类型的对象，从而让我们能够调用一些方法来操作这些数据：
+```
+var s1 = "some text";
+var s2 = s1.substring(0);
+```
+在读取模式中访问字符串时，后台都会自动完成下列处理：
+(1)创建String类型的一个实例；
+(2)在实例上调用指定的方法；
+(3)销毁这个实例。
+```
+var s1 = new String("somw text");
+var s2 = s1.substring(0);
+s1 = null;
+```
+经过此番处理，基本的字符串就变得对象一样了。而且，上面这三个步骤也分别适用于Boolean和Number类型对应的布尔值和数字值。
+引用类型与基本包装类型的主要区别就是对象的生存期。使用new操作符创建的引用类型的实例，在执行流离开当前作用域之前都一直保存在内存中。而自动创建的基本包装类型的对象，则只存在于一行代码的执行瞬间，然后立即被销毁。这意味着不能在运行时为基本类型值添加属性和方法。
+当然，可以显式地调用Boolean、Number和String来创建基本包装类型的对象。不过，应该在绝对必要的情况下再这样做，因为这种做法很容易让人分不清自己是在处理基本类型还是引用类型的值。对基本包装类型的实例调用typeof会返回"object"，而且所有基本包装类型的对象都会被转化为布尔值true。
+Object构造函数也像工厂方法一样，根据传入值的类型返回相应基本包装类型的实例。
+把字符串传给Object构造函数，就会创建String的实例；而传入数值参数会得到Number的实例，传入布尔值参数就会得到Boolean的实例。
+要注意的是，使用new调用基本包装类型的构造函数，与直接调用同名的转型函数是不一样的。
+尽管不推荐使用显式的方法去创建基本包装类型的对象，但它们操作基本类型值的能力还是相当重要的。而每个基本包装类型都提供了操作相应值的便携方法。
+
 
 
 
