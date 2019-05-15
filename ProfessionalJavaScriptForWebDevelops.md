@@ -1504,6 +1504,168 @@ Object构造函数也像工厂方法一样，根据传入值的类型返回相�
 要注意的是，使用new调用基本包装类型的构造函数，与直接调用同名的转型函数是不一样的。
 尽管不推荐使用显式的方法去创建基本包装类型的对象，但它们操作基本类型值的能力还是相当重要的。而每个基本包装类型都提供了操作相应值的便携方法。
 
+### Boolean类型
+Boolean类型是与布尔值对应的引用类型。要创建Boolean对象，可以直接调用Boolean构造函数并传入true或者false值：
+```
+var booleanObject = new Boolean(true);
+```
+Boolean类型的实例重写了valueOf()方法，返回基本类型值true或false；重写了toString()方法，返回字符串"true"和"false"。可是，Boolean对象在ECMAScript中的用处不大，因为它经常会造成人们的误解。最常见的问题就是在布尔表达式中使用Boolean对象：
+```
+var falseObject = new Boolean(false);
+console.log(falseObject && true);    // true
+
+var falseValue = false;
+console.log(falseValue && true);     // false
+```
+基本类型与引用类型的布尔值还有两个区别。首先，typeof操作符对基本类型返回"boolean"，而对引用类型返回"object"。其次，由于Boolean对象是Boolean类型的实例，所以使用instanceof操作符测试Boolean对象会返回true，而测试基本类型的布尔值则返回false：
+```
+console.log(typeof falseObject);     // object
+console.log(typeof falseValue);      // boolean
+console.log(falseObject instanceof Boolean); // true
+console.log(falseValue instanceof Boolean);  // false
+```
+理解基本类型的布尔值和Boolean对象之间的区别非常重要。**建议，永远不要使用Boolean对象。**
+
+### Number类型
+Number是与数字值对应的引用类型。要创建Number对象，可以在调用Number构造函数时向其中传递相应的数值：
+```
+var numberObject = new Number(10);
+```
+与Boolean一样，Number类型也重写了valueOf()、toLocaleString()和toString()方法。重写后的valueOf()方法返回对象表示的基本类型的数值，另外两个方法则返回字符串形式的数值。还可以为toString()方法传递一个表示基数的参数，告诉它返回几进制数值的字符串形式：
+```
+var num = 10;
+console.log(num.toString());      // "10"
+console.log(num.toString(2));     // "1010"
+console.log(num.toString(8));     // "12"
+console.log(num.toString(10));    // "10"
+console.log(num.toString(16));    // "a"
+```
+除了继承的方法之外，Number类型还提供了一些用于将数值格式化为字符串的方法。其中toFixed()方法会按照指定的小数位返回数值的字符串表示，能够自动舍入的特性，使得toFixed()方法很适合处理货币值。但需要注意的是，不同浏览器给这个方法设定的舍入规则可能会有所不同。再给toFixed()传入0的情况下，IE8以及之前版本不能正确舍入范围在{(-0.94, -0.5],[0.5, 0.94)}之间的值。对于这个范围内的值，IE会返回0，而不是-1或1；其他浏览器都能返回正确的值。IE9修复了这个问题。
+**toFixed()方法可以表示带有0到20个小数位的数值。但这只是标准实现的范围，有些浏览器也可能支持更多位数**
+另外可用于格式化数值的方法是toExponential()，该方法返回以指数表示法（也称e表示法）表示的数值的字符串形式。与toFixed()一样，toExponential()也接收一个参数，而且该参数同样也是指定输出结果中的小数位数：
+```
+var num = 10
+console.log(num.toExponential(1));   // 1.0e+1
+```
+对于一个数值来说，toPrecision()方法可能会返回固定大小(fixed)格式，也可能返回指数(exponential)格式；具体规则是看哪种格式最合适。这个方法接收一个参数，即表示数值的所有数字的位数（不包括指数部分）。
+```
+toPrecision()方法可以表现1到21位小数。某些浏览器支持的范围更大，但这是典型实现的范围。
+```
+与Boolean对象类似，Number对象也以后台方式为数值提供了重要的功能。但与此同时，仍不推荐直接实例化Number类型，原因与显式创建Boolean对象一样。具体来讲，就是在使用typeof和instanceof操作符测试基本类型值与引用类型数值时，得到的结果完全不同。
+
+### String类型
+
+String类型是字符串的对象包装类型，使用String构造函数来创建：
+```
+var stringObject = new String("hello world");
+```
+String对象的方法也可以在所有基本的字符串中访问到。其中，继承的valueOf()、toString()和toLocaleString()方法，都返回对象所表示的基本字符串值。
+String类型的每个实例都有一个length属性，表示字符串中包含有多少个字符。
+String类型提供了很多方法，用于辅助完成对ECMAScript中字符串的解析和操作。
+
+- 字符方法
+两个用于访问字符串中特定字符的方法是：charAt()和chatCodeAt()。这两个方法都接收一个参数，即基于0的字符位置。其中，charAt()方法以单字符字符串的形式返回给定位位置的那个字符（ECMAScript中没有字符类型）：
+```
+var stringValue = "hello world";
+console.log(stringValue.charAt(1));          // "e"
+console.log(stringValue.charCodeAt(1));      // "101"
+console.log(stringValue[1]);                 // "e"
+```
+ECMAScript5还定义了另一个访问个别字符的方法。在支持此方法的浏览器中，可以使用方括号加数字索引来访问字符串中的特定字符。使用方括号表示法访问个别字符的语法得到了IE8、FireFox、Safari、Chrome和Opera所有版本的支持。如果是在IE7及更早版本中使用这种语法，会返回undefined值（尽管根本不是特殊的undefined值）。
+- 字符串操作方法
+concat()，用于将一或多个字符串拼接起来，返回拼接得到的新字符串：
+```
+var stringValue = "hello ";
+console.log(stringValue.concat("world")); // "hello world"
+console.log(stringValue);                 // "hello "
+```
+concat()方法可以接收任意多个参数，也就是说可以通过它拼接任意多个字符串：
+```
+var stringValue = "hello ";
+console.log(stringValue.concat("world", "!")); // "hello world!"
+console.log(stringValue);                      // "hello "
+```
+虽然concat()是专门用来拼接字符串的方法，但实践中使用更多的还是加号(+)。而且，使用加号操作符在大多数情况下都比使用concat()方法要简便易行(特别是在拼接多个字符串的情况下)。
+ECMAScript还提供了三个基本子字符串创建新字符串的方法：slice()、substr()和substring()。这三个方法都会返回被操作字符串的一个子字符串，而且也都接收一或两个参数。第一个参数指定子字符串的开始位置，第二个参数（在指定的情况下）表示子字符串到哪里结束。具体来说，slice()和substring()的第二个参数指定的是子字符串最后一个字符串后面的位置。而substr()的第二个参数指定的则是返回的字符个数。如果没有给这些方法传递第二个参数，则将字符串的长度作为结束位置。与concat()方法一样，slice()、substr()和substring()也不会修改字符串本身的值--它们只是返回一个基本类型的字符串值，对原始字符串没有任何影响：
+```
+var stringValue = "hello world";
+console.log(stringValue.slice(3));        // "lo world"
+console.log(stringValue.substr(3));       // "lo world"
+console.log(stringValue.substring(3));    // "lo world"
+console.log(stringValue.slice(3, 7));     // "lo w"
+console.log(stringValue.substr(3, 7));    // "lo w"
+console.log(stringValue.substring(3, 7)); // "lo worl"
+```
+在传递给这些方法的参数是负数的情况下，它们的行为就不尽相同了。其中，slice()方法会将传入的负值与字符串的长度相加，substr()方法将负的第一个参数加上字符串的长度，而将负的第二个参数转换为0，substring()方法会把所有负值参数都转换为0：
+```
+var stringValue = "hello world";
+console.log(stringValue.slice(-3));        // "rld"
+console.log(stringValue.substr(-3));       // "rld"
+console.log(stringValue.substring(-3));    // "hello world"
+console.log(stringValue.slice(3, -4));     // "lo w"
+console.log(stringValue.substr(3, -4));    // ""
+console.log(stringValue.substring(3, -4)); // "hel"
+```
+- 字符串位置方法
+有两个可以从字符串中查找子字符串的方法：indexOf()和lastIndexOf()。这两个方法都是从一个字符串中搜索给定的子字符串，然后返回子字符串的位置（如果没有找到该字符串，则返回-1）。这两个方法的区别在于：indexOf()方法是从字符串的开头向后搜索子字符串，而lastIndexOf()方法是从子字符串的末尾向前搜索子字符串：
+```
+var stringValue = "hello world";
+console.log(stringValue.indexOf("o"));     // 4
+console.log(stringValue.lastValueOf("o")); // 7
+```
+这两个方法都可以接收可选的第二个参数，表示从字符串中的哪个位置开始搜索。换句话说，indexOf()会从该参数指定的位置向后搜索，忽略该位置之前的所有字符；而lastIndexOf()则会从指定的位置向前搜索，忽略该位置之后的所有字符。
+在使用第二个参数的情况下，可以通过循环调用indexOf()和lastIndexOf()来找到所有匹配的子字符串。
+- trim()方法
+ECMAScript5为所有字符串定义了trim()方法。这个方法会创建一个字符串的副本，删除前置及后缀的所有空格，然后返回结果。
+由于trim()方法返回的字符串的副本，所以原始字符串中的前置及后缀空格会保持不变。支持这个方法的浏览器有IE9+、Firefox3.5+、Safari5+、Opera10.5+和Chrome。此外，Firefox3.5+、Safari5+Chrome8+还支持非标准的trimLeft()和trimRight()方法，分别用于删除字符串开头和末尾的空格。
+- 字符串大小写转换方法
+ECMAScript中涉及字符串大小写转换的方法有4个：toLowerCase()、toLocaleLowerCase()、toUpperCase()和toLocaleUpperCase()。其中，toLowerCase()和toUpperCase()是两个经典的方法，借鉴自jave.lang.String中的同名方法。而toLocaleLowerCase()和toLocaleUpperCase()方法则是针对特定地区的实现。对有些地区来说，针对地区的方法与其通用方法得到的结果相同，但少数语言（如土耳其语）会为Unicode大小写转换应用特殊的规则，这时候就必须使用针对地区的方法来保证实现正确的转换：
+```
+var lowString = "hello world";
+var upString = "HELLO WORLD";
+console.log(lowString.toUpperCase());       // "HELLO WORLD"
+console.log(lowString.toLocaleUpperCase()); // "HELLO WORLD"
+console.log(upString.toLowerCase());        // "hello world"
+console.log(upString.toLocaleLowerCase());  // "hello world"
+```
+一般来说，在不知道自己的代码将在哪种语言环境中运行的情况下，还是使用针对地区的方法更稳妥一些。
+- 字符串的模式匹配方法
+match()方法：在字符串上调用这个方法，本质上与调用RegExp()的exec()方法相同。match()方法只接收一个参数，要么是一个正则表达式，要么是一个RegExp对象：
+```
+var stringValue = "cat, bat, sat, fat";
+var pattern = /.at/;
+var matches = stringValue.match(pattern);
+console.log(matches.index);     // 0
+console.log(matches[0]);        // "cat"
+console.log(pattern.lastIndex); // 0
+```
+search()：这个方法的唯一参数和match()方法的参数相同，由字符串或RegExp对象指定的一个正则表达式。search()方法返回字符串中第一个匹配项的索引；如果没有找到匹配项，则返回-1。而且，search()方法始终是从字符串开头向后查找模式：
+```
+var stringValue = "cat, bat, sat, fat";
+var pattern = /at/;
+console.log(stringValue.search(pattern)); // 1
+```
+为了简化替换字符串的操作，ECMAScript提供了replace()方法。这个方法接收两个参数；第一个参数可以是一个RegExp对象或者一个字符串（这个字符串不会被转换成正则表达式），第二个参数可以是一个字符串或者一个函数。如果第一个参数是字符串，那么只会替换第一个字符串。要想替换所有子字符串，唯一的办法就是提供一个正则表达式，而且要指定全局（g）标志：
+```
+var stringValue = "cat, bat, sat, fat";
+console.log(stringValue.replace("at", "ond"));  // "cond, bat, sat, fat"
+console.log(stringValue.replace(/at/g, "ond")); // "cond, bond, sond, fond"
+```
+如果第二个参数是字符串，那么还可以使用一些特殊的字符序列，将正则表达式操作得到的值插入到结果字符串中：
+```
+$$: $
+$&: 匹配整个模式的子字符串。与RegExp.lastMatch的值相同。
+$': 匹配的子字符串之前的子字符串。与RegExp.leftContext的值相同。
+$`: 匹配的子字符串之后的子字符串。与RegExp.rightContext的值相同。
+$n: 匹配第n个捕获组的子字符串，其中n等于0～9。$1是匹配第一个捕获组的子字符串，$2是匹配第二个捕获组的子字符串，以此类推。如果正则表达式中没有定义捕获组，则使用空字符串。
+$nn: 匹配第nn个捕获组的子字符串，其中nn等于01～99。$01是匹配第一个捕获组的子字符串，$02是匹配第二个捕获组的子字符串，以此类推。如果正则表达式中没有定义捕获组，则使用空字符串。
+```
+
+
+
+
+
+
 
 
 
