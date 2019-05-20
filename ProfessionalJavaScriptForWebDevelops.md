@@ -1681,6 +1681,29 @@ String构造函数本身有一个静态方法：fromCharCode()。这个方法的
 
 ## 单体内置对象
 
+内置对象的定义：由ECMAScript实现提供的、不依赖于宿主环境的对象，对这些对象在ECMAScript程序执行之前就已经存在了。意思是，开发人员不必显式地实例化内置对象。
+
+### Global对象
+Global（全局）对象可以说是ECMAScript中最特别的一个对象，因为不管你从什么角度看，这个对象都是不存在的。ECMAScript中的Global对象在某种意义上是作为一个终极的“兜底儿对象”来定义的。换句话说，不属于任何其他对象的属性和方法，最终都是它的属性和方法。事实上，没有全局变量或全局函数；所有在全局作用域中定义的属性和方法，都是Global对象的属性。
+
+**1.URI编码方法**
+Global对象的encodeURI()和encodeURIComponent()方法可以对URI(Uniform Resource Identifiers, 通用资源标识符)进行编码，以便发送给浏览器。有效的URI中不能包含某些字符，例如空格。而这两个URI编码方法就可以对URI进行编码，它们用特殊的UTF-8编码替换所有无效的字符，从而让浏览器能够接受和理解。
+其中，encodeURI()主要用于整个URI，而encodeURIComponent()主要用于对URI中的某一段进行编码。它们的主要区别在于，encodeURI()不会对自身属于URI的特殊字符进行编码；而encodeURIComponent()则会对它发现的任何非标准字符进行编码。
+使用encodeURI()编码后的结果是除了空格之外的其他字符都原封不动，只有空格被替换成了%20。而encodeURIComponent()方法则会使用对应的编码转换所有非字母数字字符。这也正是可以对整个URI使用encodeURI()，而只能对附加在现有URI后面的字符串使用encodeURIComponent()的原因所在。
+**一般来说，使用encodeURIComponent()方法的时候要比使用encodeURI()更多，因为在实践中更常见的是对查询字符串参数而不是对基础URI进行编码**
+与encodeURI()和encodeURIComponent()方法对应的两个方法分别是decodeURI()和decodeURIComponent()。其中，decodeURI()只能对使用encodeURI()替换的字符进行解码。同样的，decodeURIComponent()能够解码使用encodeURIComponent()编码的所有字符，即它可以解码任何特殊字符的编码。
+```
+decodeURI(),encodeURI()和decodeURIComponent(), encodeURIComponent()替代废弃的escape()和unescape()方法。URI方法能够编码所有Unicode字符。
+```
+**2.eval()方法**
+整个ECMAScript中最强大的一个方法：eval()。eval()方法就像是一个完整的ECMAScript解析器，它只接受一个参数，即要执行的ECMAScript(或Javascript)字符串。
+当解析器发现代码中调用eval()方法时，解析器会将传入的参数当作实际的ECMAScript语句来解析，然后把执行结果插入到原位置。通过eval()执行的代码被认为是包含该次调用的执行环境的一部分，因此被执行的代码具有与该执行环境相同的作用域链，这意味着通过eval()执行的代码可以引用在包含环境中定义的变量。同样的，也可以在eval()调用中定义一个函数，然后再在该调用的外部代码中引用这个函数。
+在eval()中创建的任何变量或函数都不会被提升，因为在解析代码的时候，它们被包含在一个字符串中；它们只在eval()执行的时候创建。
+严格模式下，在外部访问不到eval()中创建的任何变量或函数，因此前面两个例子都会导致错误。同样，在严格模式下，为eval赋值也会导致错误。
+```
+能够解释代码字符串的能力非常强大，但也非常危险。因此在使用eval()时必须极为谨慎，特别是在用它执行用户输入数据的情况下。否则，可能会有恶意用户输入威胁你的站点或应用程序安全的代码（即所谓的代码注入）。
+```
+
 
 
 
