@@ -1703,8 +1703,95 @@ decodeURI(),encodeURI()和decodeURIComponent(), encodeURIComponent()替代废弃
 ```
 能够解释代码字符串的能力非常强大，但也非常危险。因此在使用eval()时必须极为谨慎，特别是在用它执行用户输入数据的情况下。否则，可能会有恶意用户输入威胁你的站点或应用程序安全的代码（即所谓的代码注入）。
 ```
+**3.Global对象的属性**
+- undefined - 特殊值undefined
+- NaN - 特殊值NaN
+- Infinity - 特殊值Infinity
+- Object - Object对象构造函数
+- Array - Array数组构造函数
+- Function - Function函数构造函数
+- Boolean - Boolean布尔构造函数
+- String - String字符串构造函数
+- Number - Number数字构造函数
+- Date - Date日期构造函数
+- RegExp - RegExp正则表达构造函数
+- Error - Error错误构造函数
+- EvalError - EvalErroreval()函数的错误
+- RangeError - RangeError不在其所允许的范围或者是集合内
+- ReferenceError - ReferenceError引用错误，引用一个不存在的变量
+- SyntaxError - SyntaxError语法不合法
+- TypeError - TypeError值的类型非预期类型
+- URIError - URIError错误使用全局URI处理函数
+ECMAScript5明确禁止给undefined，NaN和Infinity进行赋值，这样做即使在非严格模式下也会导致错误。
+**4.window对象**
+ECMAScript虽然没有指出如何直接访问Global对象，但Web浏览器都是将这个全局对象作为window对象的一部分加以实现的。因此，在全局作用域中声明的所有变量和函数，就都成为了window对象的属性。
+```
+JavaScript中的window对象除了扮演ECMAScript规定的Global对象的角色外，还承担了很多别的任务。
+```
+### Math对象
+ECMAScript还为保存数学公式和信息提供了一个公共位置，即Math对象。相对于直接编写计算功能，Math对象提供的计算功能执行起来要快得多。Math对象中还提供了辅助完成这些计算机的属性和方法。
+**1.Math对象的属性**
+Math对象包含的属性大都是数学计算中可能会用到的一些特殊值:
+- Math.E - 自然对数的底数，即常量e的值；
+- Math.LN10 - 10的自然对数
+- Math.LN2 - 2的自然对数
+- Math.LOG2E - 以2为底e的对数
+- Math.LOG10E - 以10为底e的对数
+- Math.PI - π的值
+- Math.SQRT1_2 - 1/2的平方根
+- Math.SQRT2 - 2的平方根
+**2.min()和max()方法**
+Math对象还包含许多方法，用于辅助完成简单和复杂的数学计算。
+其中，min()和max()方法用于确定一组数据中的最小值和最大值。这两个方法都可以接收任意多个数值参数，这两个方法经常用于避免多余的循环和在if语句中确认一组数的极限值。要找到数组中的最大值或最小值，可以使用apply方法：
+```
+var values = [1, 2, 3, 4, 5, 6, 7, 8];
+var max = Math.max.apply(Math, values);
+```
+这个技巧的关键是把Math对象作为apply()的第一个参数，从而正确地设置this值。然后可以将任何数组作为第二个参数。
+**3.舍入方法**
+- Math.ceil()执行向上舍入，即总是将数值向上舍入为最接近的整数；
+- Math.floor()执行向下舍入，即总是将数值向下舍入为最接近的整数；
+- Math.round()执行标准舍入，即总是将数值四舍五入为最接近的整数。
+**4.random()方法**
+Math.random()方法返回大于等于零小于等于一的一个随机数。对于某些站点来说，这个方法非常实用，因为可以利用它来随机显示一些名人名言和新闻事件。
+**5.其他方法**
+- Math.abs(num)返回num的绝对值
+- Math.exp(num)返回Math.E的num次幂
+- Math.log(num)返回num的自然对数
+- Math.pow(num, power)返回num的power次幂
+- Math.sqrt(num)返回num的平方根
+- Math.acos(x)返回x的反余弦值
+- Math.asin(x)返回x的反正弦值
+- Math.atan(x)返回x的反正切值
+- Math.atan2(y, x)返回y/x的反正切值
+- Math.cos(x)返回x的余弦值
+- Math.sin(x)返回x的正弦值
+- Math.tan(x)返回x的正切值
 
+# 面向对象的程序设计
+面向对象(Object-Oriented，OO)的语言有一个标志，那就是它们都有类的概念，而通过类可以创建任意多个具有相同属性和方法的对象。ECMAScript中没有类的概念，因此它的对象也与基于类的语言中的对象有所不同。
+对象定义：无序属性的集合，其属性可以包含基本值、对象或者函数。严格来讲，这就相当于说对象是一组没有特定顺序的值。对象的每一个属性或方法都有一个名字，而每个名字都映射到一个值。正因为如此，对象可以想象成散列表：无非就是一组名值对-键值对，其中的值可以是数据或函数。
+每个对象都是基于一个引用类型创建的，这个引用类型可以是原声类型，也可以是开发人员定义的类型。
 
+## 理解对象
+创建自定义对象的最简单方式就是创建一个Object的实例，然后再为它添加属性和方法。
+早期的JavaScript开发人员经常使用这个模式创建新对象。几年后，对象字面量成为创建这个对象的首选模式。
+## 属性类型
+ECMA-262第五版在定义只有内部才用的特性(attribute)时，描述了属性(property)的各种特征。ECMA-262定义这些特性是为了实现JavaScript引擎用的，因此在JavaScript中不能直接访问它们。为了表示特性是内部值，该规范把它们放在了两对方括号中。
+ECMAScript中有两种属性：数据属性和访问器属性。
+**1.数据属性**
+数据属性包含一个数据值的位置。在这个位置可以读取和写入值。数据属性有四个描述其行为的特性：
+- [[Configurable]]: 表示能否通过delete删除属性从而重新定义属性，能否修改属性的特性，或者能否把属性修改为访问器属性；
+- [[Enumerable]]: 表示能否通过for-in循环返回属性；
+- [[Writable]]: 表示能否修改属性的值；
+- [[Value]]: 包含这个属性的数据值。读取属性值时，从这个位置读；写入属性值时，把新值保存在这个位置。这个特性的默认值为undefined。
+要修改属性默认的特性，必须使用ECMAScript5的Object.defineProperty()方法。这个方法接收三个参数：属性所在的对象、属性的名字和一个描述符对象。其中，描述符(descriptor)对象的属性必须是：configurable、enumerable、writable和value。设置其中的一或多个值，可以修改对应的特性值。
+将对象的writable设置为false，当一个对象的属性的值不可修改时，如果尝试为它指定新值，则在非严格模式下，赋值操作将被忽略；在严格模式下，赋值操作将会导致抛出错误。类似的规则也适用于不可配置的属性。将对象的configurable设置为false，表示不能从对象中删除属性。如果对这个属性调用delete，则在非严格模式下什么也不会发生，而在严格模式下会导致错误。而且一旦把属性定义为不可配置的，就不能再把对象变回可配置了。此时，在调用Object.defineProperty()方法修改除writable之外的特性，都会导致错误。也就是说，可以多次调用Object.defineProperty()方法修改同一个属性，但在把configurable特性设置为false之后就会有限制了。
+在调用Object.defineProperty()方法时，如果不指定，configurable、enumerable和writable特性的默认值都是false。多数情况下，可能都没有必要利用Object.defineProperty()方法提供的这些高级功能。
+```
+IE8是第一个实现Object.defineProperty()方法的浏览器版本。然而，这个版本的实现存在诸多限制；只能在DOM对象上使用这个方法，而且只能创建访问器属性。由于实现不彻底，不要在IE8中使用Object.defineProperty()方法。
+```
+**2.访问器属性**
 
 
 
