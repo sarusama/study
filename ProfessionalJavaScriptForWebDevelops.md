@@ -1792,6 +1792,84 @@ ECMAScript中有两种属性：数据属性和访问器属性。
 IE8是第一个实现Object.defineProperty()方法的浏览器版本。然而，这个版本的实现存在诸多限制；只能在DOM对象上使用这个方法，而且只能创建访问器属性。由于实现不彻底，不要在IE8中使用Object.defineProperty()方法。
 ```
 **2.访问器属性**
+访问器属性不包含数据值；它们包含一对儿getter和setter函数(不过，这两个函数都不是必需的)。在读取访问器属性时，会调用getter函数，这个函数负责返回有效的值；在写入访问器属性时，会调用setter函数并传入新值，这个函数负责决定如何处理数据：
+- [[Configurable]]：表示能否通过delete删除属性从而重新定义属性，能否修改属性的特性，或者能否把属性修改为数据属性；
+- [[Enumerable]]：表示能否通过for-in循环返回属性；
+- [[Get]]：在读取属性时调用的函数。默认值为undefined；
+- [[Set]]：在写入属性时调用的函数。默认值为undefined；
+访问器属性不能直接定义，必须使用Object.defineProperty()来定义：
+```
+var book = {
+    _year: 2004,
+    edition: 1
+};
+Object.defineProperty(book, "year", {
+    get: function () {
+        return this._year;
+    },
+    set: function (newValue) {
+        this.edition += newValue - this._year;
+        this._year = newValue;
+    }
+});
+
+book.year = 2005;
+console.log(book.edition);   // 2
+```
+这是使用访问器属性的常见方法，即设置一个属性的值会导致其他属性发生变化。
+不一定非要同时指定getter和setter。只指定getter意味着属性是不能写，尝试写入属性会被忽略。在严格模式下，尝试写入只指定了getter函数的属性会抛出错误。类似地，只指定setter函数的属性也不能读，否则在非严格模式下会返回undefined，而在严格模式下会抛出错误。
+在这个方法之前，要创建访问器属性，一般都使用两个非标准的方法：__defineGetter__()和__defineSetter__()。
+## 定义多个属性
+由于为对象定义多个属性的可能性很大，ECMAScript5又定义了一个Object.defineProperties()方法。利用这个方法可以通过描述符一次定义多个属性。这个方法接收两个对象参数：第一个对象是要添加和修改其属性的对象，第二个对象的属性与第一个对象中要添加或修改的属性一一对应。
+## 读取属性的特性
+使用ECMAScript5的Object.getOwnPropertyDescriptor()方法，可以取得给定属性的描述符。这个方法接收两个参数：属性所在对象和要读取其描述符的属性名称。返回值是一个对象，如果是访问器属性，这个对象的属性有configurable、enumerable、get和set；如果是数据属性，这个对象的属性有configurable、enumerable、writable和value。在JavaScript中，可以针对任何对象--包括DOM和BOM对象，使用Object.getOwnPropertyDescriptor()方法。
+
+# 创建对象
+虽然Object构造函数或对象字面量都可以用来创建单个对象，但这些方法有个明显的缺点：使用同一个接口创建很多对象，会产生大量的重复代码。为解决这个问题，人们开始使用工厂模式的一种变体。
+## 工厂模式
+工厂模式是软件工程领域一种广为人知的设计模式，这种模式抽象了创建具体对象的过程。考虑到在ECMAScript中无法创建类，开发人员就发明了一种函数，用函数来封装以特定接口创建对象的细节：
+```
+function createPerson (name, age, job) {
+    var o = new Object();
+    o.name = name;
+    o.age = age;
+    o.job = job;
+    o.sayName = function () {
+        console.log(this.name);
+    };
+
+    return o;
+}
+var person1 = createPerson("Nicholas", 29, "Software Engineer");
+var person2 = createPerson("Greg", 27, "Doctor");
+```
+可以无数次地调用这个函数，而每次它都会返回一个包含三个属性一个方法的对象。工厂模式虽然解决了创建多个相似对象的问题，但却没有解决对象识别的问题(即怎样知道一个对象的类型)。随着JavaScript的发展，又一个新模式出现了。
+## 构造函数模式
+ECMAScript中的构造函数可用来创建特定类型的对象。像Object和Array这样的原生构造函数，在运行时会自动出现在执行环境中。此外，也可以创建自定义的构造函数，从而定义自定义对象类型的属性和方法。
+```
+function Person (name, age, job) {
+    this.name = name;
+    this.age = age;
+    this.job = job;
+    this.sayName = function () {
+        console.log(this.name);
+    };
+}
+
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+```
+构造函数模式与工厂模式显著的区别是：
+- 没有显式地创建对象；
+- 直接将属性和方法赋给了this对象；
+- 没有return语句。
+此外，按照惯例，构造函数始终都应该以一个大写字母开头，而非构造函数则应该以小写字母开头。这个做法借鉴自其他面向对象语言，主要是为了区别于ECMAScript中的其他函数；因为构造函数本身也是函数，只不过可以用来创建对象而已。
+要创建构造函数的新实例，必须使用new操作符。以这种方式调用构造函数实际上会经历以下四个步骤：
+- 创建一个新对象；
+- 将构造函数的作用域赋给新对象(因此this就指向了这个新对象)；
+- 执行构造函数中的代码(为这个新对象添加属性)；
+- 返回新对象。
+构造函数模式创建出来的对象都有一个constructor(构造函数)属性，该属性指向创建该对象的构造函数。对象的constructor属性最初是用来标识对象类型的。但是提到检测对象类型，还是instanceof操作符要更可靠一些。通过构造函数创建出来的所有对象既是Object的实例，同时也是构造函数的实例，这一点可以通过instanceof操作符可以得到验证。创建自定义的构造函数意味着将来可以将它的实例标识为一种特定的类型；而这正是构造函数模式胜过工厂模式的地方。
 
 
 
