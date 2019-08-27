@@ -2373,8 +2373,233 @@ JavaScript是单线程语言，但它允许通过设置超时值和间歇时间�
 location是最有用的BOM对象之一，它提供了与当前窗口中加载的文档有关的信息，还提供了一些导航功能。事实上，location对象是很特别的一个对象，因为它既是widnow对象的属性，也是document对象的属性；换句话说，，window.location和document.location引用的是同一个对象。
 
 ### 查询字符串参数
+虽然通过上面的属性可以访问到location对象的大多数信息，但其中访问URL包含的查询字符串的属性并不方便。尽管location.search返回从?到URL末尾的所有内容，但却没有办法逐个访问其中的每个查询字符串参数，为此，可以像下面这样创建一个函数，用以解析查询字符串，然后返回包含所有参数的一个对象。
+### 位置操作
+## navigator对象
+识别客户端浏览器的事实标准。
+### 检测插件
+检测浏览器中是否安装了特定的插件是一种最常见的检测例程。对于非IE浏览器，可以使用plugins数组来达到这个目的：
+- name: 插件名字；
+- description: 插件描述；
+- filename: 插件文件名；
+- length: 插件所处理的MIME类型数量。
+### 注册处理程序
+## screen对象
+## history对象
+## 小结
+浏览器对象模型(BOM)以window对象为依托，表示浏览器窗口以及页面可见区域。同时，window对象还是ECMAScript中的Global对象，因而所有全局变量和函数都是它的属性，且所有原生的构造函数及其他函数也都存在于它的命名空间下：
+- 在使用框架时，每个框架都有自己的window对象以及所有原生构造函数及其他函数的副本，每个框架都保存在frames集合中，可以通过位置或通过名称来访问；
+- 有一些窗口指针，可以用来引用其他框架，包括父框架；
+- top对象始终指向最外围的框架，也就是整个浏览器窗口；
+- parent对象表示包含当前框架的框架，而self对象则回指window；
+- 使用location对象可以通过编程方式来访问浏览器的导航系统，设置相应的属性，可以连段或整体性的修改浏览器的URL；
+- 调用replace()方法可以导航到一个新URL，同时新URL会替换浏览器历史记录中当前显示的页面；
+- navigator对象提供了与浏览器有关的信息。到底提供那些信息，很大程度上取决于用户的浏览器；不过，也有一些公共属性(如userAgent)存在于所有浏览器中；
+BOM中还有两个对象：screen对象和history对象，但它们的功能有限。screen对象中保存着与客户端显示器有关的信息，这些信息一般只用于站点分析。history对象为访问浏览器的历史记录打开了一个小缝隙，开发人员可以据此判断历史记录的数量，也可以在历史记录中向后或向前导航到任意页面。
+# 客户段检测
 
+浏览器提供商虽然在实现公共接口方面投入了很多精力，但结果仍然是每一种浏览器都有各自的长处，也都有各自的缺点，即使是那些跨平台的浏览器，虽然从技术上看版本相同、也照样存在不一致性问题。面对普遍存在的不一致问题，开发人员要么采取迁就各方的“最小公分母”策略，要么就得利用各种客户端检测方法，来突破或者规避种种局限性。
 
+## 能力检测
+最常用也最为人们广泛接受的客户端检测形式是能力检测（又称特性检测）。能力检测的目标不是识别特定的浏览器，而是识别浏览器的能力。采用这种方式不必顾及特定的浏览器如何如何，只要确定浏览器支持特定的能力，就可以给出解决方案。
+
+## 怪癖检测
+
+## 用户代理检测
+争议最大的一种客户端检测技术叫做用户代理检测。用户代理检测通过检测用户代理 字符串来确定实际使用的浏览器。在每一次 HTTP 请求过程中，用户代理字符串是作为响应首部发送的， 11 而且该字符串可以通过 JavaScript 的 navigator.userAgent 属性访问。在服务器端，通过检测用户代 理字符串来确定用户使用的浏览器是一种常用而且广为接受的做法。而在客户端，用户代理检测一般被 当作一种万不得已才用的做法，其优先级排在能力检测和(或)怪癖检测之后。
+提到与用户代理字符串有关的争议，就不得不提到电子欺骗(spoofing)。所谓电子欺骗，就是指浏 览器通过在自己的用户代理字符串加入一些错误或误导性信息，来达到欺骗服务器的目的。
+
+```
+ var client = function () {
+    //呈现引擎
+    var engine = {
+        ie: 0,
+        gecko: 0,
+        webkit: 0,
+        khtml: 0,
+        opera: 0,
+        //完整的版本号
+        ver: null 
+    };
+
+    //浏览器
+    var browser = {
+        //主要浏览器 
+        ie: 0, 
+        firefox: 0, 
+        safari: 0, 
+        konq: 0, 
+        opera: 0,
+        chrome: 0,
+        //具体的版本号
+        ver: null 
+    };
+
+    //平台、设备和操作系统 
+    var system = {
+        win: false,
+        mac: false,
+        x11: false,
+        //移动设备
+        iphone: false, 
+        ipod: false, 
+        ipad: false,
+        ios: false, 
+        android: false, 
+        nokiaN: false, 
+        winMobile: false,
+        //游戏系统 
+        wii: false, 
+        ps: false
+    };
+
+    //检测呈现引擎和浏览器
+    var ua = navigator.userAgent;
+
+    if (window.opera) {
+        engine.ver = browser.ver = window.opera.version();
+        engine.opera = browser.opera = parseFloat(engine.ver);
+    } else if (/AppleWebKit\/(\S+)/.test(ua)) {
+        engine.ver = RegExp["$1"];
+        engine.webkit = parseFloat(engine.ver);
+        //确定是 Chrome 还是 Safari
+        if (/Chrome\/(\S+)/.test(ua)) {
+            browser.ver = RegExp["$1"];
+            browser.chrome = parseFloat(browser.ver);
+        } else if (/Version\/(\S+)/.test(ua)) {
+            browser.ver = RegExp["$1"];
+            browser.safari = parseFloat(browser.ver);
+        } else {
+            //近似地确定版本号
+            var safariVersion = 1;
+            if (engine.webkit < 100){
+                safariVersion = 1;
+            } else if (engine.webkit < 312){
+                safariVersion = 1.2;
+            } else if (engine.webkit < 412){
+                safariVersion = 1.3;
+            } else {
+                safariVersion = 2;
+            }
+            browser.safari = browser.ver = safariVersion;
+        }
+    } else if (/KHTML\/(\S+)/.test(ua) || /Konqueror\/([^;]+)/.test(ua)) { 
+        engine.ver = browser.ver = RegExp["$1"];
+        engine.khtml = browser.konq = parseFloat(engine.ver);
+    } else if (/rv:([^\)]+)\) Gecko\/\d{8}/.test(ua)) {
+        engine.ver = RegExp["$1"];
+        engine.gecko = parseFloat(engine.ver);
+        //确定是不是 Firefox
+        if (/Firefox\/(\S+)/.test(ua)){
+            browser.ver = RegExp["$1"];
+            browser.firefox = parseFloat(browser.ver);
+        }
+    } else if (/MSIE ([^;]+)/.test(ua)) {
+        engine.ver = browser.ver = RegExp["$1"];
+        engine.ie = browser.ie = parseFloat(engine.ver);
+    }
+
+    //检测浏览器
+    browser.ie = engine.ie; browser.opera = engine.opera;
+
+    //检测平台
+    var p = navigator.platform;
+    system.win = p.indexOf("Win") == 0;
+    system.mac = p.indexOf("Mac") == 0;
+    system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
+
+    //检测 Windows 操作系统 
+    if (system.win) {
+        if (/Win(?:dows )?([^do]{2})\s?(\d+\.\d+)?/.test(ua)) {
+            if (RegExp["$1"] == "NT") {
+                switch(RegExp["$2"]) {
+                    case "5.0":
+                        system.win = "2000";
+                        break;
+                    case "5.1":
+                        system.win = "XP";
+                        break;
+                    case "6.0":
+                        system.win = "Vista";
+                        break;
+                    case "6.1":
+                        system.win = "7";
+                        break;
+                    default:
+                        system.win = "NT";
+                        break; 
+                }
+            } else if (RegExp["$1"] == "9x") {
+                system.win = "ME";
+            } else {
+                system.win = RegExp["$1"];
+            }
+        }
+    } 
+
+    //移动设备
+    system.iphone = ua.indexOf("iPhone") > -1;
+    system.ipod = ua.indexOf("iPod") > -1;
+    system.ipad = ua.indexOf("iPad") > -1;
+    system.nokiaN = ua.indexOf("NokiaN") > -1;
+
+    //windows mobile
+    if (system.win == "CE"){
+        system.winMobile = system.win;
+    } else if (system.win == "Ph") {
+        if(/Windows Phone OS (\d+.\d+)/.test(ua)) {
+            system.win = "Phone";
+            system.winMobile = parseFloat(RegExp["$1"]);
+        } 
+    }
+
+    //检测 iOS 版本
+    if (system.mac && ua.indexOf("Mobile") > -1) {
+        if (/CPU (?:iPhone )?OS (\d+_\d+)/.test(ua)) {
+            system.ios = parseFloat(RegExp.$1.replace("_", "."));
+        } else {
+            system.ios = 2; //不能真正检测出来，所以只能猜测
+        } 
+    }
+
+    //检测 Android 版本
+    if (/Android (\d+\.\d+)/.test(ua)) {
+        system.android = parseFloat(RegExp.$1);
+    }
+
+    //游戏系统
+    system.wii = ua.indexOf("Wii") > -1; system.ps = /playstation/i.test(ua);
+
+    //返回这些对象 
+    return {
+        engine: engine,
+        browser: browser,
+        system: system
+    };
+}();
+```
+# DOM
+DOM（文档对象模型）是针对HTML和XML文档的一个API（应用程序编程接口）。DOM描绘了一个层次化的节点树，允许开发人员添加、移除和修改页面的某一部分。
+## 节点层次
+DOM可以将任何HTML或XML文档描绘成一个由多个节点构成的结构。节点分为几种不同的类型，每种类型分别表示文档中不同的信息及（或）标记。每个节点都拥有各自的特点、数据和方法，另外也与其他节点存在某种关系。节点之间的关系构成了层次，而所有页面标记则表现为一个以特定节点为根节点的树形结构。文档节点是每个文档的根节点。HTML中文档节点只有一个字节点，即<html>元素（也叫文档元素，document element）。文档元素是文档的最外层元素，文档中的其他所有元素都包含在文档元素中。每个文档只能有一个文档元素。在HTML页面中，文档元素始终是都是<html>元素。在XML中，没有预设的元素，因此任何元素都可能成为文档元素。
+每一段标记都可以通过树中的一个节点来表示：HTML元素通过元素节点表示，特性（attributes）通过特性节点表示，文档类型通过文档类型节点表示，而注释则通过注释节点表示。总共有12种节点类型，这些类型都继承自一个基类型。
+
+### Node类型
+JavaScript中的所有节点类型都继承自Node类型，因此所有节点类型都共享着相同的基本属性和方法。每个节点都有一个nodeType属性，用于表明节点类型。
+1. nodeName和nodeValue属性
+2. 节点关系
+3. 操作节点
+4. 其他方法
+
+### Document类型
+JavaScript通过Document类型表示文档。在浏览器中，document对象是HTMLDocument(继承自Document类型)的一个实例，表示整个HTML页面。而且，document对象是window对象的一个属性，因此可以将其作为全局对象来访问。
+Document节点特征：
+- nodeType的值为9;
+- nodeName的值为"#document";
+- nodeValue的值为null;
+- parentNode的值为null;
+- ownerDocument的值为null;
+- 其子节点可能是一个DocumentType(最多一个)、Element(最多一个)、ProcessingIntruction或Comment。
 
 
 
