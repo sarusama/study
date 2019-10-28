@@ -2600,6 +2600,179 @@ Document节点特征：
 - parentNode的值为null;
 - ownerDocument的值为null;
 - 其子节点可能是一个DocumentType(最多一个)、Element(最多一个)、ProcessingIntruction或Comment。
+Document类型可以表示HTML页面或者其他基于XML的文档。不过，最常见的应用还是作为HTMLDocument实例的document对象。通过这个文档对象，不仅可以取得与页面有关的信息，而且还能操作页面的外观及其底层结构。
+1. 文档子节点
+2. 文档信息
+3. 查找元素
+4. 特殊集合
+5. DOM一致性检测
+6. 文档写入
+
+### Element类型
+除了Document类型之外，Element类型是Web编程中最常用的类型。Element类型用于表现XML或HTML元素，提供了对元素标签名、子节点及特性的访问。Element节点具有以下特征：
+- nodeType的值为1；
+- nodeName的值为元素的标签名；
+- nodeValue的值为null；
+- parentNode可能是Document或者是Element；
+- 其子节点可能是Element、Text、Comment、ProcessingInstruction、CDATASection或EntityReference。
+要访问元素的标签名，可以使用nodeName属性，也可以使用tagName属性；这两个属性会返回相同的值（使用后者主要是为了清晰起见）。
+1. HTML元素：
+- id，元素在文档中的唯一标识符；
+- title，有关元素的附加说明信息，一般通过工具提示条显示出来；
+- lang，元素内容的语言代码，很少使用；
+- dir，语言的方向，值为“ltr”（left-to-right，从左至右）或“rtl”（right-to-left，从右至左），也很少使用；
+- className，与元素的class特性对应，即为元素指定的CSS类。没有将这个属性命名为class，是因为class是ECMAScript的保留字。
+2. 取得特性：getAttribute()
+3. 设置特性：setAttribute()
+4. attributes属性：
+5. 创建元素：
+createElement([元素标签名])，这个函数只是创建了元素，并未将元素添加入文档树中。因此，还需要将元素添加到文档树中，可以使用appendChild()、insertBefore()、replaceChild()方法。
+6. 元素的子节点：
+元素可以有任意数目的子节点和后代节点，因为元素可以是其他元素的子节点。元素的childNodes属性中包含了它的所有子节点，这些子节点有可能是元素、文本节点、注释或处理指令。
+
+### Text类型
+文本节点由Text类型表示，包含的是可以照字面解释的纯文本内容，纯文本中可以包含转义后的HTML字符，但不能包含HTML代码。Text节点具有以下特征：
+- nodeType的值为3；
+- nodeName的值为“#text”；
+- nodeValue的值为节点所包含的文本；
+- parentNode是一个Element；
+- 不支持（没有）子节点。
+可以通过nodeValue属性或data属性访问Text节点中包含的文本，这两个属性中包含的值相同。对nodeValue的修改也会通过data反映出来，反之亦然。使用下列方法可以操作节点中的文本：
+- appendData(text)：将text添加到节点的末尾；
+- deleteData(offset, count)：从offset指定的位置开始删除count个字符；
+- insertData(offset, text)：在offset指定的位置插入text；
+- replaceData(offset, count, text)：用text替换掉从offset指定的位置开始到offset+count为止处的文本；
+- splitText(offset)：从offset指定的位置将当前文本节点分成两个文本节点；
+- substringData(offset, count)：提取从offset指定的位置开始到offset+count为止处的字符串。
+除去这些方法，文本节点还有一个length属性，保存着节点中字符的数目。
+1. 创建文本节点：
+可以使用document.createTextNode()创建新文本节点，这个方法接受一个参数--要插入节点中的文本。与设置已有文本节点的值一样，作为参数的文本也将按照HTML或XML的格式进行编码。在创建新文本节点的同时，也会为其设置ownerDocument属性。不过，除非把新节点添加到文档树中已经存在的节点中，否则无法在浏览器窗口中看到新节点。一般情况下，每个元素只有一个文本节点。
+2. 规范化文本节点：
+3. 分割文本节点：
+
+### Comment类型
+
+- nodeType的值为8；
+- nodeName的值为“#comment”；
+- nodeValue的值是注释内容；
+- parentNode可能是Document或Element;
+- 不支持（没有）子节点。
+
+### CDATASection类型
+
+CDATASection类型只针对基于XML的文档，表示的是CDATA区域。与Comment类似，CDATASection类型继承自Text类型，因此拥有除splitText()之外的所有字符串操作方法。CDATASection节点具有下列特性：
+- nodeType的值为4；
+- nodeName的值为"#cdata-section"；
+- nodeValue的值为CDATA区域中的内容；
+- parentNode可能是Document或Element；
+- 不支持（没有子节点）。
+CDATA区域只会出现在XML文档中，因此多数浏览器都会把CDATA区域错误地解析为Comment或Element。
+
+### DocumentType类型
+
+DocumentType类型在Web浏览器中并不常用，仅有FireFox、Safari和Opera支持它。DocumentType包含着与文档的doctype有关的所有信息。DocumentType节点具有下列特性：
+- nodeType的值为10；
+- nodeName的值为doctype的名称；
+- nodeValue的值为null；
+- parentNode是document；
+- 不支持（没有）子节点。
+
+### DocumentFragment类型
+
+在所有节点类型中，只有DocumentFragment在文档中没有对应的标记。DOM规定文档片段（document fragment）是一种“轻量级”的文档，可以包含和控制节点，但不会像完整文档那样占用额外的资源。DocumentFragment节点具有下列类型：
+- nodeType的值为11；
+- nodeName的值为“#document-fragment”；
+- nodeValue的值为null；
+- parentNode的值为null；
+- 子节点可以是Element、ProcessingInstruction、Comment、Text、CDATASection或EntityReference。
+虽然不能把文档片段直接添加到文档中，但可以将它作为一个“仓库”来使用，即可以在里面保存将来可能会添加到文档中的节点。要创建文档片段，可以使用document.createDocumentFragment()方法。
+文档片段继承了Node的所有方法，通常用于执行那些针对文档的DOM操作。如果将文档中的节点添加到文档片段中，就会从文档树中移除该节点，也不会从浏览器中再看到该节点。添加到文档片段中的新节点同样也不属于文档树。可以通过appendChild()或insertBefore()将文档片段中内容添加到文档中。在将文档片段作为参数传递给这两个方法时，实际上只会将文档片段的所有子节点添加到相应位置上：文档片段本身永远不会成为文档树的一部分。
+```
+.html
+<ul id="list"></ul>
+
+.js
+var fragment = document.createDocumentFragment();
+var ul = document.getElementById("list");
+var li = null;
+
+for (var i = 0; i < 3; i ++ ) {
+    li = document.createElement("li");
+    li.appendChild(document.createTextNode(`item${i}`));
+
+    fragment.appendChild(li);
+}
+
+ul.appendChild(fragment);
+```
+这样就可以一次性插入大量节点。
+
+### Attr类型
+
+元素的特性在DOM中以Attr类型来表示。在所有浏览器中，都可以访问Attr类型的构造函数和原型。从技术角度讲，特性就是存在于元素的attributes属性中的节点。特性节点具有下列特征：
+- nodeType的值为2；
+- nodeName的值是特性的名称；
+- nodeValue的值是特性的值；
+- parentNode的值为null；
+- 在HTML中不支持（没有）子节点；
+- 在XML中子节点可以是Text或EntityReference。
+尽管它们也是节点，但特性却不被认为是DOM文档树的一部分。一般直接使用getAttribute()、setAttribute()和removeAttribute()方法。
+
+## DOM操作技术
+
+### 动态脚本
+使用<script>元素可以向页面中插入JavaScript代码，一种方式是通过其src特性包含外部文件，另一种方式就是用这个元素本身来包含代码。而动态脚本，指的是在页面加载时不存在，但将来的某一时刻通过修改DOM动态添加的脚本。跟操作HTML元素一样，创建动态脚本也有两种方法：插入外部文件和直接插入JavaScript代码。
+动态加载的外部JavaScript文件能够立即运行。
+
+### 动态样式
+能够把css样式包含到HTML页面中的元素有两个。其中<link>元素用于包含来自外部的文件；而<style>元素用于指定嵌入的样式。与动态脚本类似，所谓动态样式是指在页面刚加载时不存在的样式。需要注意的是，必须将<link>元素添加到<head>而不是<body>元素，才能保证在所有浏览器中的行为一致。
+加载外部样式文件的过程是异步的，也就是加载样式与执行JavaScript代码的过程没有固定的次序。一般来说，知不知道样式已经加载完成并不重要。
+
+### 操作表格
+<table>元素是HTML中最复杂的结构之一。要想构建表格，一般都必须涉及表示表格行、单元格、表头等方面的标签。由于涉及的标签多，因而使用核心DOM方法创建和修改表格往往都免不了要编写大量的代码。显然，DOM代码很长，还有点不太好懂。为了方便构建表格，HTML DOM还为<table>、<tbody>和<tr>元素添加了一些属性和方法。
+
+### 使用NodeList
+
+理解NodeList及其“近亲”NameNodeMap和HTMLCollection，是从整体上透彻理解DOM的关键所在。这三个集合都是“动态的”；换句话说，每当文档结构发生变化时，都会得到更新。因此，NodeList始终都会保存着最新、最准确的信息。从本质上说，所有NodeList对象都是在访问DOM文档时实时运行的查询。一般来说，应该尽减少访问NodeList的次数。因为每次访问NodeList，都会运行一次基于文档的查询。
+
+## 小结
+
+DOM是语言中4立的API，用于访问和操作HTML和XML文档。DOM1级将HTML和XML文档形象地看作一个层次化的节点树，可以使用JavaScript来操作这棵节点树，进而改变底层文档的外观和结构。
+- 最基本的节点类型是Node，用于抽象地表示文档中一个独立的部分；所有其他类型都继承自Node；
+- Document类型表示整个文档，是一组分层节点的根节点。在JavaScript中，document对象是Document的一个实例。使用document对象，有很多方式可以查询和取得节点；
+- Element节点表示文档中的所有HTML和XML元素，可以用来操作这些元素的内容和特性；
+- 另外还有一些节点类型，分别表示文本内容、注释、文档类型、CDATA区域和文档片段。
+访问DOM的操作在多数操作下都很直观，不过在处理<script>和<style>元素时还是存在一些复杂性。由于这两个元素分别包含脚本和样式信息，因此浏览器通常会将它们和其他元素区别对待。这些区别导致了在针对这些元素使用innerHTML时，以及在创建新元素时的一些问题。
+理解DOM的关键，就是理解DOM对性能的影响。DOM操作往往是JavaScript程序中开销最大的部分，而因访问NodeList导致的问题为最多。NodeList对象都是“动态的”，这就意味着每次访问NodeList对象，都会运行一次查询。有鉴于此，最好的方法就是尽量减少DOM操作。
+
+# DOM扩展
+
+尽管DOM作为API已经非常完善了，但为了实现更多的功能，仍然会有一些标准或专有的扩展。
+
+## 选择符API
+
+众多JavaScript库中最常用的一项功能，就是根据CSS选择符选择与某个模式匹配的DOM元素。Selectors API是由W3C发起制定的一个标准，致力于让浏览器原生支持CSS查询。所有实现这一功能的JavaScript库都会写一个基础的CSS解析器，然后再使用已有的DOM方法查询文档并找到匹配的节点。尽管库开发人员在不知疲倦地改进这一过程的性能，但到头来都只能通过运行JavaScript代码来完成查询操作。而把这个功能变成原生API之后，解析和树查询操作可以在浏览器内部通过编译后的代码来完成，极大地改善了性能。
+
+### querySelector()方法
+
+querySelector()方法接收一个CSS选择符，返回与该模式匹配的第一个元素，如果没有找到匹配元素，返回null。通过Document类型调用 querySelector()方法时，会在文档元素的范围内查找匹配的元素。而通过Element类型调用querySelector()方法时，只会在该元素后代元素的范围内查找匹配的元素。CSS选择符可以简单也可以复杂，视情况而定。如果传入了不被支持的选择符，querySelector()会抛出错误。
+
+### querySelectorAll()方法
+
+querySelectorAll()方法接收的参数与querySelector()方法一样，都是一个CSS选择符，但返回的是所有匹配的元素而不仅仅是一个元素。这个方法返回的是一个NodeList的实例。具体来说，返回的值实际上是带有所有属性和方法的NodeList，而其底层实现则类似于一组元素的快照，而非不断对文档进行搜索的动态查询。这样实现可以避免使用NodeList对象通常会引起的大多数性能问题。只要传给querySelectorAll()方法的CSS选择符有效，该方法都会返回一个NodeList对象，而不管找到多少匹配的元素。如果没有找到匹配的元素，NodeList就是空的。与querySelector()类似，能够调用querySelectorAll()方法的类型包括Document、DocumentFragment和Element。
+
+### matchesSelector()方法
+matchesSelector()方法接收一个参数，即CSS选择符。如果调用元素与该选择符匹配，返回true；否则，返回false。
+
+## 元素遍历
+
+- childElementCount: 返回子元素（不包括文本节点和注释）的个数；
+- firstElementChild: 指向第一个子元素，firstChild的元素版；
+- lastElementChild: 指向最后一个子元素，lastChild的元素版；
+- previousElementSibling: 指向前一个同辈元素，previousSibling的元素版；
+- nextElementSibling: 指向后一个同辈元素，nextSibling的元素版。
+
+## HTML5
 
 
 
@@ -2607,7 +2780,3 @@ Document节点特征：
 
 
 
-
-
-
- 
